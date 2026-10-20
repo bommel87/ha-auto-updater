@@ -72,11 +72,19 @@ def get_state(entity_id):
         return None
 
 
+_last_core_error = None
+
+
 def core_up():
+    global _last_core_error
     try:
         request("GET", f"{CORE}/", timeout=10)
+        _last_core_error = None
         return True
-    except (urllib.error.URLError, OSError, ValueError):
+    except (urllib.error.URLError, OSError, ValueError) as err:
+        if str(err) != _last_core_error:
+            log.info("Home Assistant noch nicht erreichbar: %s", err)
+            _last_core_error = str(err)
         return False
 
 
@@ -311,6 +319,8 @@ def main():
     with open(OPTIONS_FILE, encoding="utf-8") as f:
         opts = json.load(f)
 
+    if not TOKEN:
+        log.error("SUPERVISOR_TOKEN fehlt – keine Verbindung zu Home Assistant möglich")
     log.info("Warte auf Home Assistant …")
     wait_for_core()
     try:

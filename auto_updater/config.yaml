@@ -1,12 +1,12 @@
 name: Auto-Updater
-version: "1.0.0"
+version: "1.0.1"
 slug: auto_updater
 description: Installiert nachts alle Updates (HACS, Core, OS, Add-ons, Firmware), bis keine mehr offen sind.
 url: https://github.com/bommel87/ha-auto-updater
 arch:
   - aarch64
   - amd64
-init: false
+init: true
 startup: application
 boot: auto
 homeassistant_api: true
