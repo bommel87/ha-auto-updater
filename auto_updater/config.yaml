@@ -1,0 +1,44 @@
+name: Auto-Updater
+version: "1.0.0"
+slug: auto_updater
+description: Installiert nachts alle Updates (HACS, Core, OS, Add-ons, Firmware), bis keine mehr offen sind.
+url: https://github.com/bommel87/ha-auto-updater
+arch:
+  - aarch64
+  - amd64
+init: false
+startup: application
+boot: auto
+homeassistant_api: true
+hassio_api: true
+options:
+  time: "01:00"
+  window_end: "05:00"
+  notify_service: notify.mobile_app_iphone_von_susanne
+  notify_success: false
+  update_hacs: true
+  update_core: true
+  update_os: true
+  update_addons: true
+  update_firmware: true
+  backup_core: true
+  backup_addons: true
+  exclude: []
+  dry_run: false
+  run_on_start: false
+schema:
+  time: match(^([01]\d|2[0-3]):[0-5]\d$)
+  window_end: match(^([01]\d|2[0-3]):[0-5]\d$)
+  notify_service: str?
+  notify_success: bool
+  update_hacs: bool
+  update_core: bool
+  update_os: bool
+  update_addons: bool
+  update_firmware: bool
+  backup_core: bool
+  backup_addons: bool
+  exclude:
+    - str
+  dry_run: bool
+  run_on_start: bool

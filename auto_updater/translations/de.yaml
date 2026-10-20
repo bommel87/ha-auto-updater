@@ -1,0 +1,38 @@
+configuration:
+  time:
+    name: Startzeit
+    description: Uhrzeit (HH:MM), zu der jede Nacht der Update-Lauf startet.
+  window_end:
+    name: Ende des Zeitfensters
+    description: Nach dieser Uhrzeit (HH:MM) beginnt der Lauf keine neuen Updates mehr.
+  notify_service:
+    name: Push-Dienst
+    description: Aktion für Benachrichtigungen, z. B. notify.mobile_app_iphone_von_susanne. Leer = Benachrichtigung in HA.
+  notify_success:
+    name: Auch Erfolge melden
+    description: Nach dem Lauf eine Push mit allen installierten Updates schicken. Fehler werden immer gemeldet.
+  update_hacs:
+    name: HACS
+    description: Integrationen, Karten und Themes aus HACS aktualisieren.
+  update_core:
+    name: Home Assistant Core
+  update_os:
+    name: Home Assistant OS
+  update_addons:
+    name: Add-ons
+  update_firmware:
+    name: Gerätefirmware
+    description: ESPHome, UniFi, Zigbee-Funkmodul und andere Geräte.
+  backup_core:
+    name: Backup vor Core-Update
+  backup_addons:
+    name: Backup vor Add-on-Updates
+  exclude:
+    name: Ausnahmen
+    description: Update-Entitäten, die nie automatisch installiert werden, z. B. update.home_assistant_yellow_radio_firmware.
+  dry_run:
+    name: Testlauf
+    description: Nichts installieren, nur per Push melden, was installiert würde.
+  run_on_start:
+    name: Beim Start ausführen
+    description: Lauf sofort beim Start des Add-ons ausführen (zum Testen, danach wieder ausschalten).
