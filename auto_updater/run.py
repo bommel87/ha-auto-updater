@@ -30,6 +30,8 @@ MAX_ATTEMPTS = 2            # Versuche je Update und Nacht
 MAX_ROUNDS = 10
 SETTLE_SECONDS = 120        # nach Core-Start warten, bis Integrationen geladen sind
 OS_REBOOT_WAIT = 600        # nach OS-Update: Zeit, in der der Host neu startet
+BACKGROUND_TIMEOUT = 1200   # höchstens so lange auf Updates warten, die im Hintergrund laufen
+BACKGROUND_MIN_WAIT = 90    # mindestens so lange auf eine neue Version warten
 
 KINDS = ("addons", "firmware", "hacs", "core", "os")
 
@@ -162,6 +164,8 @@ def pending(skip, self_name):
             continue
         if eid in skip or eid in exclude or eid == SUPERVISOR_ENTITY:
             continue
+        if s["attributes"].get("in_progress"):
+            continue  # läuft schon, z. B. Firmware im Hintergrund
         if eid == CORE_ENTITY:
             kind = "core"
         elif eid == OS_ENTITY:
@@ -183,6 +187,27 @@ def describe(s):
     attrs = s["attributes"]
     name = attrs.get("title") or attrs.get("friendly_name") or s["entity_id"]
     return f"{name} {attrs.get('installed_version')} → {attrs.get('latest_version')}"
+
+
+def done(s, target):
+    return bool(s) and (s["state"] == "off" or s["attributes"].get("installed_version") == target)
+
+
+def wait_until_done(eid, target):
+    """Wartet, bis das Update fertig ist.
+
+    Manche Geräte (z. B. Shelly) starten das Update nur und installieren im
+    Hintergrund weiter; danach sind sie kurz nicht erreichbar.
+    """
+    start = time.time()
+    s = get_state(eid)
+    while not done(s, target) and time.time() - start < BACKGROUND_TIMEOUT:
+        busy = not s or s["state"] in ("unavailable", "unknown") or s["attributes"].get("in_progress")
+        if not busy and time.time() - start >= BACKGROUND_MIN_WAIT:
+            break
+        time.sleep(15)
+        s = get_state(eid)
+    return s
 
 
 def install(st, eid, kind):
@@ -216,14 +241,8 @@ def install(st, eid, kind):
         time.sleep(OS_REBOOT_WAIT)  # startet der Host neu, endet der Prozess hier
         wait_for_core()
 
-    # Geräte sind nach einem Firmware-Update kurz nicht erreichbar.
-    end = time.time() + 180
-    s = get_state(eid)
-    while (not s or s["state"] in ("unavailable", "unknown")) and time.time() < end:
-        time.sleep(10)
-        s = get_state(eid)
-
-    ok = bool(s) and (s["state"] == "off" or s["attributes"].get("installed_version") == target)
+    s = wait_until_done(eid, target)
+    ok = done(s, target)
     if ok:
         log.info("Erfolgreich: %s", text)
         st["installed"].append(text)
