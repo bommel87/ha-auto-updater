@@ -1,5 +1,5 @@
 name: Auto-Updater
-version: "1.0.3"
+version: "1.0.4"
 slug: auto_updater
 description: Installiert nachts alle Updates (Marketplace/HACS, Core, OS, Add-ons, Firmware), bis keine mehr offen sind.
 url: https://github.com/bommel87/ha-auto-updater
@@ -23,6 +23,7 @@ options:
   update_firmware: true
   backup_core: true
   backup_addons: true
+  marketplace_warning_accepted: false
   exclude: []
   dry_run: false
   run_on_start: false
@@ -38,6 +39,7 @@ schema:
   update_firmware: bool
   backup_core: bool
   backup_addons: bool
+  marketplace_warning_accepted: bool
   exclude:
     - str
   dry_run: bool

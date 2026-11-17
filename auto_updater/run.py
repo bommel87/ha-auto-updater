@@ -5,9 +5,12 @@ Läuft als Add-on in einem eigenen Container und übersteht daher Neustarts von
 Home Assistant Core. Nach einem Neustart des Hosts (OS-Update) wird ein
 unterbrochener Lauf anhand von /data/state.json fortgesetzt.
 """
+import base64
 import json
 import logging
 import os
+import socket
+import struct
 import time
 import urllib.error
 import urllib.request
@@ -60,6 +63,88 @@ def request(method, url, data=None, timeout=60):
         return json.loads(raw)
     except ValueError:
         return raw
+
+
+def _ws_send(sock, payload):
+    data = json.dumps(payload).encode()
+    mask = os.urandom(4)
+    header = bytes([0x81])
+    if len(data) < 126:
+        header += bytes([0x80 | len(data)])
+    elif len(data) < 65536:
+        header += bytes([0x80 | 126]) + struct.pack("!H", len(data))
+    else:
+        header += bytes([0x80 | 127]) + struct.pack("!Q", len(data))
+    sock.sendall(header + mask + bytes(b ^ mask[i % 4] for i, b in enumerate(data)))
+
+
+def _ws_recv(sock):
+    def read(n):
+        buf = b""
+        while len(buf) < n:
+            chunk = sock.recv(n - len(buf))
+            if not chunk:
+                raise OSError("WebSocket geschlossen")
+            buf += chunk
+        return buf
+
+    first, second = read(2)
+    length = second & 0x7F
+    if length == 126:
+        length = struct.unpack("!H", read(2))[0]
+    elif length == 127:
+        length = struct.unpack("!Q", read(8))[0]
+    payload = read(length)
+    if first & 0x0F != 0x1:  # nur Textnachrichten sind JSON
+        return _ws_recv(sock)
+    return json.loads(payload)
+
+
+def ws_command(command):
+    """Führt einen WebSocket-Befehl als Benutzer des Add-ons aus."""
+    with socket.create_connection(("supervisor", 80), timeout=30) as sock:
+        key = base64.b64encode(os.urandom(16)).decode()
+        sock.sendall(
+            (
+                "GET /core/websocket HTTP/1.1\r\nHost: supervisor\r\nUpgrade: websocket\r\n"
+                f"Connection: Upgrade\r\nSec-WebSocket-Key: {key}\r\nSec-WebSocket-Version: 13\r\n\r\n"
+            ).encode()
+        )
+        response = b""
+        while b"\r\n\r\n" not in response:
+            chunk = sock.recv(1024)
+            if not chunk:
+                raise OSError("Keine Antwort beim WebSocket-Aufbau")
+            response += chunk
+        status = response.split(b"\r\n", 1)[0]
+        if b" 101 " not in status:
+            raise OSError(status.decode())
+        _ws_recv(sock)  # auth_required
+        _ws_send(sock, {"type": "auth", "access_token": TOKEN})
+        if _ws_recv(sock).get("type") != "auth_ok":
+            raise OSError("WebSocket-Anmeldung fehlgeschlagen")
+        _ws_send(sock, {"id": 1, **command})
+        while True:
+            msg = _ws_recv(sock)
+            if msg.get("id") == 1 and msg.get("type") == "result":
+                return msg
+
+
+def accept_marketplace_warning():
+    """Bestätigt den Marketplace-Hinweis für den Systembenutzer dieses Add-ons.
+
+    Seit 2026.11 gilt die Bestätigung pro Benutzer. Nur auf ausdrücklichen Wunsch
+    (Option marketplace_warning_accepted).
+    """
+    try:
+        result = ws_command({"type": "marketplace/warning/accept"})
+    except (OSError, ValueError) as err:
+        log.error("Marketplace-Hinweis konnte nicht bestätigt werden: %s", err)
+        return
+    if result.get("success"):
+        log.info("Marketplace-Hinweis für das Add-on bestätigt")
+    elif result.get("error", {}).get("code") != "unknown_command":  # ohne Marketplace (vor 2026.11)
+        log.error("Marketplace-Hinweis konnte nicht bestätigt werden: %s", result.get("error"))
 
 
 def call_service(domain, service, data, timeout=60):
@@ -275,7 +360,7 @@ def error_message(err):
     except (ValueError, AttributeError):
         message = body.strip()
     if message and "Marketplace" in message and "warning" in message:
-        return "Marketplace-Hinweis noch nicht bestätigt: Einstellungen → Marketplace öffnen und Hinweis akzeptieren"
+        return "Marketplace-Hinweis für das Add-on nicht bestätigt: Option „Marketplace-Hinweis bestätigt“ einschalten"
     return (message or str(err))[:200]
 
 
@@ -372,6 +457,8 @@ def main():
     except Exception:  # noqa: BLE001
         tz = None
     self_name = request("GET", f"{SUPERVISOR}/addons/self/info")["data"]["name"]
+    if opts.get("marketplace_warning_accepted"):
+        accept_marketplace_warning()
 
     st = load_state()
     if st.get("running") or opts.get("run_on_start"):

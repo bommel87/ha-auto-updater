@@ -19,6 +19,12 @@ Danach beginnt die nächste Runde, bis nichts mehr offen ist oder das Zeitfenste
 - Der Supervisor und das Add-on selbst werden nicht aktualisiert. Für dieses Add-on kannst du im Add-on-Store
   „Automatisch aktualisieren“ einschalten.
 
+## Marketplace (ab Home Assistant 2026.11)
+
+Der Marketplace verlangt, dass jeder Benutzer den Hinweis zu Community-Software einmal bestätigt – auch der
+Systembenutzer, über den dieses Add-on arbeitet. Schalte dafür die Option **Marketplace-Hinweis bestätigt** ein
+und starte das Add-on neu. Ohne die Option werden Marketplace-Updates abgelehnt und per Push gemeldet.
+
 ## Testen
 
 1. **Testlauf** und **Beim Start ausführen** einschalten, speichern, Add-on neu starten.

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.4
+
+- Neue Option „Marketplace-Hinweis bestätigt“: Seit 2026.11 gilt die Bestätigung pro Benutzer, auch für den Systembenutzer des Add-ons. Mit der Option bestätigt das Add-on den Hinweis beim Start selbst.
+
 ## 1.0.3
 
 - Unterstützt den Marketplace aus Home Assistant 2026.11 (früher HACS): Updates werden wieder erkannt und HA danach neu gestartet.

@@ -27,6 +27,11 @@ configuration:
     name: Backup vor Core-Update
   backup_addons:
     name: Backup vor Add-on-Updates
+  marketplace_warning_accepted:
+    name: Marketplace-Hinweis bestätigt
+    description: >-
+      Ich habe den Hinweis zu Community-Software im Marketplace gelesen und akzeptiere ihn. Das Add-on bestätigt
+      ihn damit auch für seinen eigenen Systembenutzer; ohne das lehnt Home Assistant Marketplace-Updates ab.
   exclude:
     name: Ausnahmen
     description: Update-Entitäten, die nie automatisch installiert werden, z. B. update.home_assistant_yellow_radio_firmware.
