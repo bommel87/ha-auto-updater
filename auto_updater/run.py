@@ -34,6 +34,9 @@ BACKGROUND_TIMEOUT = 1200   # höchstens so lange auf Updates warten, die im Hin
 BACKGROUND_MIN_WAIT = 90    # mindestens so lange auf eine neue Version warten
 
 KINDS = ("addons", "firmware", "hacs", "core", "os")
+# Seit 2026.11 ist HACS als "Marketplace" in Home Assistant eingebaut.
+# Die Art heißt intern weiter "hacs", damit die Option update_hacs gültig bleibt.
+STORE_DOMAINS = ("marketplace", "hacs")
 
 log = logging.getLogger("auto_updater")
 opts: dict = {}
@@ -91,8 +94,10 @@ def core_up():
 
 
 def hacs_entities():
+    """Update-Entitäten aus dem Marketplace (früher HACS)."""
+    domains = " + ".join(f"integration_entities('{d}')" for d in STORE_DOMAINS)
     try:
-        result = template("{{ integration_entities('hacs') | select('match', 'update[.]') | list | tojson }}")
+        result = template(f"{{{{ ({domains}) | select('match', 'update[.]') | unique | list | tojson }}}}")
     except (urllib.error.URLError, OSError, ValueError):
         return set()
     return set(result) if isinstance(result, list) else set()
@@ -229,8 +234,13 @@ def install(st, eid, kind):
     log.info("Installiere %s%s", text, " (mit Backup)" if data.get("backup") else "")
 
     error = None
+    rejected = False
     try:
         call_service("update", "install", data, timeout=INSTALL_TIMEOUT)
+    except urllib.error.HTTPError as err:
+        # HA hat das Update abgelehnt; der Grund steht in der Antwort.
+        error = error_message(err)
+        rejected = True
     except (urllib.error.URLError, OSError, ValueError) as err:
         # Bei Core/OS normal: die Verbindung bricht beim Neustart ab.
         error = getattr(err, "reason", None) or str(err)
@@ -241,7 +251,7 @@ def install(st, eid, kind):
         time.sleep(OS_REBOOT_WAIT)  # startet der Host neu, endet der Prozess hier
         wait_for_core()
 
-    s = wait_until_done(eid, target)
+    s = get_state(eid) if rejected and kind not in ("core", "os") else wait_until_done(eid, target)
     ok = done(s, target)
     if ok:
         log.info("Erfolgreich: %s", text)
@@ -254,8 +264,23 @@ def install(st, eid, kind):
     return ok
 
 
+def error_message(err):
+    """Fehlermeldung von Home Assistant aus einer HTTP-Fehlerantwort."""
+    try:
+        body = err.read().decode()
+    except (OSError, ValueError):
+        body = ""
+    try:
+        message = json.loads(body).get("message")
+    except (ValueError, AttributeError):
+        message = body.strip()
+    if message and "Marketplace" in message and "warning" in message:
+        return "Marketplace-Hinweis noch nicht bestätigt: Einstellungen → Marketplace öffnen und Hinweis akzeptieren"
+    return (message or str(err))[:200]
+
+
 def restart_core():
-    log.info("Starte Home Assistant neu, damit HACS-Updates aktiv werden")
+    log.info("Starte Home Assistant neu, damit Marketplace-Updates aktiv werden")
     try:
         call_service("homeassistant", "restart", {}, timeout=30)
     except (urllib.error.URLError, OSError, ValueError):

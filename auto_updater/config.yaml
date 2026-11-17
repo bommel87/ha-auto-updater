@@ -1,7 +1,7 @@
 name: Auto-Updater
-version: "1.0.2"
+version: "1.0.3"
 slug: auto_updater
-description: Installiert nachts alle Updates (HACS, Core, OS, Add-ons, Firmware), bis keine mehr offen sind.
+description: Installiert nachts alle Updates (Marketplace/HACS, Core, OS, Add-ons, Firmware), bis keine mehr offen sind.
 url: https://github.com/bommel87/ha-auto-updater
 arch:
   - aarch64

@@ -6,10 +6,10 @@ nach einem OS-Update (Neustart des Hosts) automatisch fort.
 
 ## Ablauf pro Runde
 
-1. Add-ons (mit Backup), Gerätefirmware, HACS
+1. Add-ons (mit Backup), Gerätefirmware, Marketplace (früher HACS)
 2. Home Assistant Core (mit Backup) – Core startet neu, das Add-on wartet
 3. Home Assistant OS – der Host startet neu, danach geht es weiter
-4. Gab es nur HACS-Updates, wird Core neu gestartet, damit sie aktiv werden
+4. Gab es nur Marketplace-Updates, wird Core neu gestartet, damit sie aktiv werden
 
 Danach beginnt die nächste Runde, bis nichts mehr offen ist oder das Zeitfenster endet.
 

@@ -12,8 +12,8 @@ configuration:
     name: Auch Erfolge melden
     description: Nach dem Lauf eine Push mit allen installierten Updates schicken. Fehler werden immer gemeldet.
   update_hacs:
-    name: HACS
-    description: Integrationen, Karten und Themes aus HACS aktualisieren.
+    name: Marketplace (früher HACS)
+    description: Integrationen, Karten und Themes aus dem Marketplace bzw. HACS aktualisieren.
   update_core:
     name: Home Assistant Core
   update_os:

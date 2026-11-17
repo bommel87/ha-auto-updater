@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.3
+
+- Unterstützt den Marketplace aus Home Assistant 2026.11 (früher HACS): Updates werden wieder erkannt und HA danach neu gestartet.
+- Lehnt HA ein Update ab, steht der Grund in Protokoll und Push, z. B. wenn der Marketplace-Hinweis noch nicht bestätigt ist.
+- Abgelehnte Updates blockieren den Lauf nicht mehr 90 Sekunden.
+
 ## 1.0.2
 
 - Firmware, die im Hintergrund installiert wird (z. B. Shelly), wird nicht mehr fälschlich als fehlgeschlagen gemeldet.

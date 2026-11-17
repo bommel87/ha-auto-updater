@@ -1,6 +1,6 @@
 # Home Assistant Auto-Updater
 
-Add-on-Repository mit einem Add-on, das nachts alle Updates installiert (HACS, Core, OS, Add-ons, Gerätefirmware),
+Add-on-Repository mit einem Add-on, das nachts alle Updates installiert (Marketplace/HACS, Core, OS, Add-ons, Gerätefirmware),
 bis keine mehr offen sind. Fehlgeschlagene Updates werden per Push gemeldet.
 
 ## Installation
