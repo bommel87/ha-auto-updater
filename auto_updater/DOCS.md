@@ -25,6 +25,8 @@ Der Marketplace verlangt, dass jeder Benutzer den Hinweis zu Community-Software 
 Systembenutzer, über den dieses Add-on arbeitet. Schalte dafür die Option **Marketplace-Hinweis bestätigt** ein
 und starte das Add-on neu. Ohne die Option werden Marketplace-Updates abgelehnt und per Push gemeldet.
 
+Vollständige Anleitung mit Bild: https://github.com/bommel87/ha-auto-updater#3-marketplace-hinweis-bestätigen-ab-202611-wichtig
+
 ## Testen
 
 1. **Testlauf** und **Beim Start ausführen** einschalten, speichern, Add-on neu starten.
